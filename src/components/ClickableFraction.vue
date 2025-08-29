@@ -1,22 +1,36 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 
-const props = defineProps<{ size: number }>()
-const emit = defineEmits(['numeratorClicked','denominatorClicked'])
-
+const props = defineProps<{ size: number; p_numerator: bigint; p_denominator: bigint }>()
+const emit = defineEmits(['update'])
+//const model = defineModel<{numerator: bigint, denominator: bigint}>({required: true})
+const numerator = ref(1n)
+const denominator = ref(1n)
 const fractionNumberStyle = { fontSize: props.size + 'px' }
 
-const numerator = ref(1n)
+watch(
+  () => props.p_numerator,
+  (newValue, oldValue) => {
+    //console.log(`numerator changed: ${oldValue} -> ${newValue}`)
+    if (oldValue != newValue) numerator.value = newValue
+  },
+)
+watch(
+  () => props.p_denominator,
+  (newValue, oldValue) => {
+    //console.log(`denominator changed: ${oldValue} -> ${newValue}`)
+    if (oldValue != newValue) denominator.value = newValue
+  },
+)
 function clickNumerator() {
   numerator.value++
-  reduceFraction();
-  emit("numeratorClicked");
+  reduceFraction()
+  emit('update', { numerator: numerator.value, denominator: denominator.value })
 }
-const denominator = ref(1n)
 function clickDenominator() {
   denominator.value++
   reduceFraction()
-  emit("denominatorClicked");
+  emit('update', { numerator: numerator.value, denominator: denominator.value })
 }
 function gcdF(a: bigint, b: bigint) {
   if (b === 0n) return a
