@@ -5,30 +5,50 @@ import { ref, computed, type Ref } from 'vue'
 
 const isDebug = ref(false)
 const currentScreen: Ref<'levelSelect' | 'game'> = ref('levelSelect')
-const level = ref(0n)
-const levelComplete: Ref<boolean[]> = ref([false, false, false, false, false])
+const currentLevel = ref(0n)
+const levelComplete: Ref<boolean> = ref(false)
 const numerator = ref(1n)
 const denominator = ref(1n)
-const levelArray = ref([0n, 1n, 2n, 3n, 4n])
+const moveAmount = ref(0n)
+const levelArray = ref([0n, 1n, 2n, 3n, 4n, 5n])
 const levelInfo = [
   [3n, 2n],
   [4n, 3n],
   [10n, 9n],
   [5n, 8n],
   [25n, 22n],
+  [3n, 2n],
 ]
-const currentLevelInfo = computed(() => levelInfo[Number(level.value)])
+const playerInfo: Ref<{ moveAmount: bigint; levelComplete: boolean }[]> = ref([])
+for (let i = 0; i <= 5; i++) playerInfo.value[i] = { moveAmount: 0n, levelComplete: false }
+const currentLevelInfo = computed(() => levelInfo[Number(currentLevel.value)])
 function enterLevel(arg_level: bigint) {
   if (levelInfo[Number(arg_level)] == undefined) return
   currentScreen.value = 'game'
   console.log(`enterLevel ${arg_level}`)
   numerator.value = 1n
   denominator.value = 1n
-  level.value = arg_level
+  currentLevel.value = arg_level
 }
-function updatePrimaryFraction(arg_numerator: bigint, arg_denominator: bigint) {
+function exitLevel() {
+  resetLevel()
+  currentScreen.value = 'levelSelect'
+}
+function updatePrimaryFraction(
+  arg_numerator: bigint,
+  arg_denominator: bigint,
+  arg_moveAmount: bigint,
+) {
   numerator.value = arg_numerator
   denominator.value = arg_denominator
+  moveAmount.value = arg_moveAmount
+  checkCompletion()
+}
+function resetLevel() {
+  levelComplete.value = false
+  numerator.value = 1n
+  denominator.value = 1n
+  moveAmount.value = 0n
   checkCompletion()
 }
 function checkCompletion() {
@@ -36,13 +56,13 @@ function checkCompletion() {
     numerator.value === currentLevelInfo.value[0] &&
     denominator.value === currentLevelInfo.value[1]
   ) {
-    levelComplete.value[Number(level.value)] = true
+    levelComplete.value = true
+    playerInfo.value[Number(currentLevel.value)].levelComplete = true
   }
 }
 function goToNextLevel() {
-  numerator.value = 1n
-  denominator.value = 1n
-  level.value++
+  resetLevel()
+  currentLevel.value++
 }
 </script>
 
@@ -52,8 +72,8 @@ function goToNextLevel() {
     <button
       class="levelselect-button"
       :class="{
-        'complete-level': levelComplete[Number(level)],
-        'incomplete-level': !levelComplete[Number(level)],
+        'complete-level': playerInfo[Number(level)].levelComplete,
+        'incomplete-level': !playerInfo[Number(level)].levelComplete,
       }"
       v-for="level in levelArray"
       :key="Number(level)"
@@ -65,7 +85,7 @@ function goToNextLevel() {
   <div id="game" v-show="currentScreen === 'game'">
     <div id="goal">
       <br />
-      레벨 {{ level + 1n }}<br />
+      레벨 {{ currentLevel + 1n }}<br />
       목표:
       <Fraction
         id="goal-fraction"
@@ -80,22 +100,29 @@ function goToNextLevel() {
         :size="72"
         :p_numerator="numerator"
         :p_denominator="denominator"
+        :p_move-amount="moveAmount"
         @update="
           (v) => {
-            updatePrimaryFraction(v.numerator, v.denominator)
+            updatePrimaryFraction(v.numerator, v.denominator, v.moveAmount)
           }
         "
       ></ClickableFraction>
+      <div class="move-amount-div">횟수: {{ moveAmount }}</div>
     </div>
-    <div id="level-complete-div" v-show="levelComplete[Number(level)]">
+    <div id="level-complete-div" v-show="levelComplete">
       <h2>성공!</h2>
       <br />
-      <button @click="goToNextLevel">다음 레벨로</button>
+      <button v-show="levelInfo[Number(currentLevel) + 1] != undefined" @click="goToNextLevel">
+        다음 레벨로
+      </button>
+      <button @click="resetLevel()">다시하기</button>
+      <button @click="exitLevel()">돌아가기</button>
+      <div class="move-amount-div">횟수: {{ moveAmount }}</div>
+      <div class="min-move-amount-div">최소 횟수: {{ moveAmount }}</div>
     </div>
     <div id="return-container">
-      <button id="returnto-levelselect-button" @click="currentScreen = 'levelSelect'">
-        돌아가기
-      </button>
+      <button id="returnto-levelselect-button" @click="exitLevel()">돌아가기</button>
+      <button @click="resetLevel()">리셋</button>
     </div>
   </div>
   <div id="debug-screen" v-show="isDebug">
@@ -129,11 +156,11 @@ function goToNextLevel() {
   top: 50%;
   left: 50%;
   width: 50vw;
-  height: 25vh;
+  height: 50vh;
   transform: translate(-50%, -50%);
   font-size: large;
   text-align: center;
-  background-color: white;
+  background-color: #ffffff;
   border-style: solid;
   border-color: black;
   border-width: 0.5em;
@@ -146,7 +173,7 @@ function goToNextLevel() {
   flex-direction: column;
   align-items: center;
 }
-#returnto-levelselect-button {
+#return-container * {
   width: 100px;
   height: 50px;
 }
@@ -156,6 +183,12 @@ function goToNextLevel() {
 }
 .complete-level {
   background-color: green;
+}
+.move-amount-div {
+  font-size: 20px;
+}
+.min-move-amount-div {
+  font-size: 20px;
 }
 .incomplete-level {
   background-color: dimgray;
