@@ -19,9 +19,25 @@ const levelInfo = [
   [25n, 22n],
   [3n, 2n],
 ]
-const playerInfo: Ref<{ moveAmount: bigint; levelComplete: boolean }[]> = ref([])
-for (let i = 0; i <= 5; i++) playerInfo.value[i] = { moveAmount: 0n, levelComplete: false }
+const playerLevelInfo: Ref<
+  { moveAmount: bigint; minMoveAmount: bigint | null; levelComplete: boolean }[]
+> = ref([])
+for (let i = 0; i <= 5; i++)
+  playerLevelInfo.value[i] = { moveAmount: 0n, minMoveAmount: null, levelComplete: false }
 const currentLevelInfo = computed(() => levelInfo[Number(currentLevel.value)])
+const playerInfo = {
+  isDebug,
+  currentScreen,
+  currentLevel,
+  levelComplete,
+  numerator,
+  denominator,
+  moveAmount,
+  playerLevelInfo,
+}
+function exportSave() {
+  return playerLevelInfo.value
+}
 function enterLevel(arg_level: bigint) {
   if (levelInfo[Number(arg_level)] == undefined) return
   currentScreen.value = 'game'
@@ -57,7 +73,10 @@ function checkCompletion() {
     denominator.value === currentLevelInfo.value[1]
   ) {
     levelComplete.value = true
-    playerInfo.value[Number(currentLevel.value)].levelComplete = true
+    playerLevelInfo.value[Number(currentLevel.value)].levelComplete = true
+    const pic = playerLevelInfo.value[Number(currentLevel.value)]
+    if (pic.minMoveAmount === null) pic.minMoveAmount = moveAmount.value
+    else if (moveAmount.value < pic.minMoveAmount) pic.minMoveAmount = moveAmount.value
   }
 }
 function goToNextLevel() {
@@ -72,8 +91,8 @@ function goToNextLevel() {
     <button
       class="levelselect-button"
       :class="{
-        'complete-level': playerInfo[Number(level)].levelComplete,
-        'incomplete-level': !playerInfo[Number(level)].levelComplete,
+        'complete-level': playerLevelInfo[Number(level)].levelComplete,
+        'incomplete-level': !playerLevelInfo[Number(level)].levelComplete,
       }"
       v-for="level in levelArray"
       :key="Number(level)"
@@ -118,7 +137,9 @@ function goToNextLevel() {
       <button @click="resetLevel()">다시하기</button>
       <button @click="exitLevel()">돌아가기</button>
       <div class="move-amount-div">횟수: {{ moveAmount }}</div>
-      <div class="min-move-amount-div">최소 횟수: {{ moveAmount }}</div>
+      <div class="min-move-amount-div">
+        최소 횟수: {{ playerLevelInfo[Number(currentLevel)].minMoveAmount }}
+      </div>
     </div>
     <div id="return-container">
       <button id="returnto-levelselect-button" @click="exitLevel()">돌아가기</button>
