@@ -11,6 +11,9 @@ const numerator = ref(1n)
 const denominator = ref(1n)
 const moveAmount = ref(0n)
 const levelArray = ref([0n, 1n, 2n, 3n, 4n, 5n])
+const startTime = ref(0)
+const completed시각 = ref(0)
+const currentTime = ref(0)
 const levelInfo = [
   [3n, 2n],
   [4n, 3n],
@@ -20,12 +23,24 @@ const levelInfo = [
   [3n, 2n],
 ]
 const playerLevelInfo: Ref<
-  { moveAmount: bigint; minMoveAmount: bigint | null; levelComplete: boolean }[]
+  {
+    moveAmount: bigint
+    minTime: number | null
+    minMoveAmount: bigint | null
+    levelComplete: boolean
+  }[]
 > = ref([])
 for (let i = 0; i <= 5; i++)
-  playerLevelInfo.value[i] = { moveAmount: 0n, minMoveAmount: null, levelComplete: false }
+  playerLevelInfo.value[i] = {
+    moveAmount: 0n,
+    minTime: null,
+    minMoveAmount: null,
+    levelComplete: false,
+  }
 const currentLevelInfo = computed(() => levelInfo[Number(currentLevel.value)])
-const playerInfo = {
+const complete시간 = computed(() => (completed시각.value - startTime.value) / 1000)
+const elapsedTime = computed(() => (currentTime.value - startTime.value) / 1000)
+/* const playerInfo = {
   isDebug,
   currentScreen,
   currentLevel,
@@ -34,16 +49,45 @@ const playerInfo = {
   denominator,
   moveAmount,
   playerLevelInfo,
+}*/
+type Save = {
+  isDebug: boolean
+  currentScreen: typeof currentScreen.value
+  currentLevel: bigint
+  levelComplete: boolean
+  numerator: bigint
+  denominator: bigint
+  moveAmount: bigint
+  playerLevelInfo: typeof playerLevelInfo.value
 }
-function exportSave() {
-  return playerLevelInfo.value
+
+function exportSave(): Save {
+  return {
+    isDebug: isDebug.value,
+    currentScreen: currentScreen.value,
+    currentLevel: currentLevel.value,
+    levelComplete: levelComplete.value,
+    numerator: numerator.value,
+    denominator: denominator.value,
+    moveAmount: moveAmount.value,
+    playerLevelInfo: playerLevelInfo.value,
+  }
+}
+function importSave(save: Save) {
+  isDebug.value = save.isDebug
+  currentScreen.value = save.currentScreen
+  currentLevel.value = save.currentLevel
+  levelComplete.value = save.levelComplete
+  numerator.value = save.numerator
+  denominator.value = save.denominator
+  moveAmount.value = save.moveAmount
+  playerLevelInfo.value = save.playerLevelInfo
 }
 function enterLevel(arg_level: bigint) {
   if (levelInfo[Number(arg_level)] == undefined) return
   currentScreen.value = 'game'
   console.log(`enterLevel ${arg_level}`)
-  numerator.value = 1n
-  denominator.value = 1n
+  resetLevel()
   currentLevel.value = arg_level
 }
 function exitLevel() {
@@ -65,6 +109,7 @@ function resetLevel() {
   numerator.value = 1n
   denominator.value = 1n
   moveAmount.value = 0n
+  startTime.value = Date.now()
   checkCompletion()
 }
 function checkCompletion() {
@@ -74,6 +119,7 @@ function checkCompletion() {
   ) {
     levelComplete.value = true
     playerLevelInfo.value[Number(currentLevel.value)].levelComplete = true
+    completed시각.value = Date.now()
     const pic = playerLevelInfo.value[Number(currentLevel.value)]
     if (pic.minMoveAmount === null) pic.minMoveAmount = moveAmount.value
     else if (moveAmount.value < pic.minMoveAmount) pic.minMoveAmount = moveAmount.value
@@ -83,6 +129,9 @@ function goToNextLevel() {
   resetLevel()
   currentLevel.value++
 }
+setInterval(() => {
+  currentTime.value = Date.now()
+}, 20)
 </script>
 
 <template>
@@ -127,6 +176,7 @@ function goToNextLevel() {
         "
       ></ClickableFraction>
       <div class="move-amount-div">횟수: {{ moveAmount }}</div>
+      <div>시간: {{ elapsedTime }}</div>
     </div>
     <div id="level-complete-div" v-show="levelComplete">
       <h2>성공!</h2>
@@ -137,6 +187,7 @@ function goToNextLevel() {
       <button @click="resetLevel()">다시하기</button>
       <button @click="exitLevel()">돌아가기</button>
       <div class="move-amount-div">횟수: {{ moveAmount }}</div>
+      <div>걸린 시간: {{ complete시간 }}</div>
       <div class="min-move-amount-div">
         최소 횟수: {{ playerLevelInfo[Number(currentLevel)].minMoveAmount }}
       </div>
