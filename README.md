@@ -2,6 +2,7 @@
 
 This template should help get you started developing with Vue 3 in Vite.
 A game about reaching the goal fraction.
+이 게임은 6개의 레벨이 있고, 각 레벨에는 네가 도달해야 하는 분수가 있다. 가운데 있는 분수의 분자를 클릭하면 분자가 1씩 늘어나고, 분모를 클릭하면 분모가 1씩 늘어난다. 그 다음에 분수가 약분될 수 있다면 약분된다.
 
 ## Recommended IDE Setup
 

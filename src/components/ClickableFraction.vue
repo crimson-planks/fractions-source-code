@@ -98,8 +98,9 @@ function reduceFraction() {
 .fraction-bar {
   display: block;
   width: 100%;
-  height: 5%;
+  height: 5px;
   margin-top: 10px;
   margin-bottom: 10px;
+  background-color: black;
 }
 </style>

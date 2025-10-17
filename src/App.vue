@@ -20,7 +20,7 @@ const levelInfo = [
   [10n, 9n],
   [5n, 8n],
   [25n, 22n],
-  [3n, 2n],
+  [39n, 18n],
 ]
 const playerLevelInfo: Ref<
   {
@@ -121,8 +121,10 @@ function checkCompletion() {
     playerLevelInfo.value[Number(currentLevel.value)].levelComplete = true
     completed시각.value = Date.now()
     const pic = playerLevelInfo.value[Number(currentLevel.value)]
-    if (pic.minMoveAmount === null) pic.minMoveAmount = moveAmount.value
-    else if (moveAmount.value < pic.minMoveAmount) pic.minMoveAmount = moveAmount.value
+    if (pic.minMoveAmount === null || moveAmount.value < pic.minMoveAmount)
+      pic.minMoveAmount = moveAmount.value
+
+    if (pic.minTime === null || complete시간.value < pic.minTime) pic.minTime = complete시간.value
   }
 }
 function goToNextLevel() {
@@ -135,7 +137,7 @@ setInterval(() => {
 </script>
 
 <template>
-  <button @click="isDebug = !isDebug">toggle debug mode</button>
+  <button style="display: none" @click="isDebug = !isDebug">toggle debug mode</button>
   <div id="levelselect" v-show="currentScreen === 'levelSelect'">
     <button
       class="levelselect-button"
@@ -151,16 +153,17 @@ setInterval(() => {
     </button>
   </div>
   <div id="game" v-show="currentScreen === 'game'">
+    <div id="level-title">레벨 {{ currentLevel + 1n }}</div>
     <div id="goal">
-      <br />
-      레벨 {{ currentLevel + 1n }}<br />
-      목표:
-      <Fraction
-        id="goal-fraction"
-        :size="36"
-        :numerator="currentLevelInfo[0]"
-        :denominator="currentLevelInfo[1]"
-      ></Fraction>
+      <div id="goal-box">
+        <span id="goal-text">목표</span>
+        <Fraction
+          id="goal-fraction"
+          :size="24"
+          :numerator="currentLevelInfo[0]"
+          :denominator="currentLevelInfo[1]"
+        ></Fraction>
+      </div>
     </div>
     <div id="primary-fraction-container">
       <ClickableFraction
@@ -187,9 +190,12 @@ setInterval(() => {
       <button @click="resetLevel()">다시하기</button>
       <button @click="exitLevel()">돌아가기</button>
       <div class="move-amount-div">횟수: {{ moveAmount }}</div>
-      <div>걸린 시간: {{ complete시간 }}</div>
+      <div>걸린 시간: {{ complete시간 }} 초</div>
       <div class="min-move-amount-div">
         최소 횟수: {{ playerLevelInfo[Number(currentLevel)].minMoveAmount }}
+      </div>
+      <div class="min-time-div">
+        최소 걸린 시간: {{ playerLevelInfo[Number(currentLevel)].minTime }} 초
       </div>
     </div>
     <div id="return-container">
@@ -208,6 +214,9 @@ setInterval(() => {
 * {
   font-family: 'Courier New', Courier, monospace;
 }
+#game {
+  text-align: center;
+}
 #primary-fraction-container {
   width: 100%;
   display: flex;
@@ -217,11 +226,26 @@ setInterval(() => {
 #goal {
   display: flex;
   flex-direction: column;
-  width: 100%;
   align-items: center;
 }
 #goal * {
+  min-width: fit-content;
+}
+#goal-box {
+  text-align: center;
   width: fit-content;
+  border-radius: 5px;
+  border-style: dashed;
+  border-color: black;
+}
+#goal-fraction {
+  width: 100%;
+}
+#level-title {
+  font-size: 50px;
+}
+#goal-text {
+  font-size: 30px;
 }
 #level-complete-div {
   position: absolute;
@@ -260,6 +284,9 @@ setInterval(() => {
   font-size: 20px;
 }
 .min-move-amount-div {
+  font-size: 20px;
+}
+.min-time-div {
   font-size: 20px;
 }
 .incomplete-level {

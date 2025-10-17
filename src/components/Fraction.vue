@@ -7,7 +7,8 @@ const fractionNumberStyle = { fontSize: props.size + 'px' }
     <div class="fraction-number fraction-numerator" :style="fractionNumberStyle">
       {{ props.numerator }}
     </div>
-    <img class="fraction-bar" src="../assets/fraction_bar.svg" />
+    <div class="fraction-bar"></div>
+
     <div class="fraction-number fraction-denominator" :style="fractionNumberStyle">
       {{ props.denominator }}
     </div>
@@ -21,14 +22,13 @@ const fractionNumberStyle = { fontSize: props.size + 'px' }
   width: min-content;
   margin: 0 auto;
 }
-.fraction-number:hover {
-  cursor: pointer;
-}
+
 .fraction-bar {
   display: block;
   width: 100%;
   height: 5px;
   margin-top: 10px;
   margin-bottom: 10px;
+  background-color: black;
 }
 </style>
