@@ -20,7 +20,7 @@ const levelInfo = [
   [10n, 9n],
   [5n, 8n],
   [25n, 22n],
-  [39n, 18n],
+  [67n, 21n],
 ]
 const playerLevelInfo: Ref<
   {
