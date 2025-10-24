@@ -74,7 +74,7 @@ function reduceFraction() {
     >
       {{ numerator }}
     </div>
-    <img class="fraction-bar" src="../assets/fraction_bar.svg" />
+    <div class="fraction-bar"></div>
     <div
       class="fraction-number fraction-denominator"
       @click="clickDenominator()"
